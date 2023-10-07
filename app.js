@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const { sendMail } = require("./sendgrid");
+const { sendTemplateMail, sendNormalMail } = require("./sendgrid");
 const {
   getSendGridTemplates,
   postSendGridTemplate,
@@ -22,7 +22,9 @@ app.post("/api/v1/mail-send", async (req, res) => {
       message: "Please enter email",
     });
   }
-  const { message, content, success } = await sendMail(req.body.email);
+  // const { message, content, success } = await sendNormalMail(req.body.email);
+  const { message, content, success } = await sendTemplateMail(req.body.email);
+
   return res.status(400).json({
     success,
     message,

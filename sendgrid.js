@@ -1,40 +1,37 @@
 const sgMail = require("@sendgrid/mail");
 
-exports.sendMail = async (mailData, templateId = null) => {
-  try {
-    const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || null;
-    const SENDGRID_SENDER_EMAIL = process.env.SENDGRID_SENDER_EMAIL || null;
+const sendGridConfig = () => {
+  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || null;
+  const SENDGRID_SENDER_EMAIL = process.env.SENDGRID_SENDER_EMAIL || null;
 
-    if (!SENDGRID_API_KEY) {
-      return {
-        success: false,
-        message: "Sendgrid API key not set",
-      };
-    }
+  if (!SENDGRID_API_KEY) throw new Error("SENDGRID_API_KEY is required !!");
+  if (!SENDGRID_SENDER_EMAIL)
+    throw new Error("SENDGRID_SENDER_EMAIL is required !!");
 
-    if (!SENDGRID_SENDER_EMAIL) {
-      return {
-        success: false,
-        message: "Sendgrid sender email address not set",
-      };
-    }
+  return { SENDGRID_API_KEY, SENDGRID_SENDER_EMAIL };
+};
 
-    sgMail.setApiKey(SENDGRID_API_KEY);
+const getPersonalizations = (
+  RECIPIENT_EMAILS,
+  SENDGRID_SENDER_EMAIL,
+  templateData = null
+) => {
+  let personalizations = [
+    {
+      to: [
+        {
+          email: "support@" + SENDGRID_SENDER_EMAIL,
+        },
+      ],
+    },
+  ];
+  let toSendMails = [];
 
-    const RECIPIENT_EMAILS = [...new Set([mailData].flat())];
-
-    const data = ["abcd", "efgh"];
-    templateId = "d-741bf704dc744986be5dcaa66c81be2d";
-
-    let sendMailAddress = [];
-
-    console.log(
-      "🚀 ~ file: sendgrid.jss:32 ~ exports.sendMail= ~ RECIPIENT_EMAILS:",
-      RECIPIENT_EMAILS
-    );
-    for (let i = 0; i < RECIPIENT_EMAILS.length; i++) {
-      if (templateId) {
-        sendMailAddress.push({
+  for (let i = 0; i < RECIPIENT_EMAILS.length; i++) {
+    if (templateData && templateData.templateId) {
+      toSendMails = [
+        ...toSendMails,
+        {
           to: [
             {
               email: RECIPIENT_EMAILS[i],
@@ -43,16 +40,29 @@ exports.sendMail = async (mailData, templateId = null) => {
           dynamic_template_data: {
             subject: "Testing Templates & Stuff",
             name: 'Some "Testing" One',
-            city: `<b>${data[i]}<b>`,
+            city: `<b>${templateData.data[i]}<b>`,
           },
-        });
-      } else {
-        sendMailAddress.push({ email: RECIPIENT_EMAILS[i] });
-      }
+        },
+      ];
+    } else {
+      toSendMails = [...toSendMails, { email: RECIPIENT_EMAILS[i] }];
     }
-    console.log(
-      "🚀 ~ file: sendgrid.js:47 ~ exports.sendMail= ~ sendMailAddress:",
-      sendMailAddress
+  }
+
+  personalizations = [...toSendMails];
+  return personalizations;
+};
+
+const sendNormalMail = async (mailData) => {
+  try {
+    const { SENDGRID_API_KEY, SENDGRID_SENDER_EMAIL } = sendGridConfig();
+
+    sgMail.setApiKey(SENDGRID_API_KEY);
+
+    const RECIPIENT_EMAILS = [...new Set([mailData].flat())];
+    const personalizations = getPersonalizations(
+      RECIPIENT_EMAILS,
+      SENDGRID_SENDER_EMAIL
     );
 
     const mail = {
@@ -64,11 +74,11 @@ exports.sendMail = async (mailData, templateId = null) => {
               email: "support@" + SENDGRID_SENDER_EMAIL,
             },
           ],
-          ...(templateId ? { sendMailAddress } : { bcc: sendMailAddress }),
+          bcc: personalizations,
         },
       ],
-      ...(templateId && { templateId }),
-      ...(!templateId && { subject: "hello", html: "<h1>Hello User</h1>" }),
+      subject: "hello",
+      html: "<h1>Hello User</h1>",
     };
 
     const mail_response = await sgMail.send(mail, true);
@@ -86,3 +96,44 @@ exports.sendMail = async (mailData, templateId = null) => {
     };
   }
 };
+
+const sendTemplateMail = async (mailData, templateId = null) => {
+  try {
+    const { SENDGRID_API_KEY, SENDGRID_SENDER_EMAIL } = sendGridConfig();
+    sgMail.setApiKey(SENDGRID_API_KEY);
+
+    const RECIPIENT_EMAILS = [...new Set([mailData].flat())];
+    const templateData = {
+      data: ["abcd", "efgh"],
+      templateId: "d-741bf704Sff4986be5daa66c81be2d",
+    };
+
+    const personalizations = getPersonalizations(
+      RECIPIENT_EMAILS,
+      SENDGRID_SENDER_EMAIL,
+      templateData
+    );
+
+    const mail = {
+      from: `sender@${process.env.SENDGRID_SENDER_EMAIL}`,
+      personalizations,
+      templateId: templateData.templateId,
+    };
+
+    const mail_response = await sgMail.send(mail, true);
+
+    return {
+      success: true,
+      message: "Mail sent successfully",
+      content: mail_response[0],
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      success: false,
+      message: err.message,
+    };
+  }
+};
+
+module.exports = { sendNormalMail, sendTemplateMail, sendGridConfig };

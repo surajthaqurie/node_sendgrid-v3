@@ -1,12 +1,6 @@
 const client = require("@sendgrid/client");
 const { dynamic_template } = require("./dynamic_template");
-
-const sendGridConfig = () => {
-  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || null;
-  if (!SENDGRID_API_KEY) throw new Error("SENDGRID_API_KEY is required !!");
-
-  return { SENDGRID_API_KEY };
-};
+const { sendGridConfig } = require("./sendgrid");
 
 const postSendGridTemplate = async () => {
   try {
