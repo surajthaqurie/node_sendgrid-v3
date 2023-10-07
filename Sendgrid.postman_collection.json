@@ -1,0 +1,138 @@
+{
+	"info": {
+		"_postman_id": "c5e7b27e-0164-4927-8f65-4b94f3b38a38",
+		"name": "Sendgrid",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14268566"
+	},
+	"item": [
+		{
+			"name": "Dynamic template",
+			"item": [
+				{
+					"name": "Get Templates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{APP_URL}}/template",
+							"host": [
+								"{{APP_URL}}"
+							],
+							"path": [
+								"template"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Template by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{APP_URL}}/template/d-144117071e354d71a6d659c4a2013bfb",
+							"host": [
+								"{{APP_URL}}"
+							],
+							"path": [
+								"template",
+								"d-144117071e354d71a6d659c4a2013bfb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create template",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{APP_URL}}/template",
+							"host": [
+								"{{APP_URL}}"
+							],
+							"path": [
+								"template"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete template",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{APP_URL}}/template/d-5507bdd2fb0c4036a7d6405e19ec8d5c",
+							"host": [
+								"{{APP_URL}}"
+							],
+							"path": [
+								"template",
+								"d-5507bdd2fb0c4036a7d6405e19ec8d5c"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Send mail",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": [\n        \"storeuc3@yopmail.com\",\n        \"surajchan68@gmail.com\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{APP_URL}}/mail-send",
+					"host": [
+						"{{APP_URL}}"
+					],
+					"path": [
+						"mail-send"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "APP_URL",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
