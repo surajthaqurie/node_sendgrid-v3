@@ -3,12 +3,8 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const { sendTemplateMail, sendNormalMail } = require("./sendgrid");
-const {
-  getSendGridTemplates,
-  postSendGridTemplate,
-  getSendGridTemplateById,
-  deleteSendGridTemplateById,
-} = require("./sendgrid_template");
+const { getSendGridTemplates, postSendGridTemplate, getSendGridTemplateById, deleteSendGridTemplateById } = require("./sendgrid_template");
+const { getAllContact, searchEmailInContact, saveEmailToContact, postContact, validateEmail, verifyAndSaveEmailContact } = require("./sendgrid_contact");
 
 const PORT = process.env.PORT || 3001;
 app.use(express.json());
@@ -22,14 +18,17 @@ app.post("/api/v1/mail-send", async (req, res) => {
       message: "Please enter email",
     });
   }
-  // const { message, content, success } = await sendNormalMail(req.body.email);
-  const { message, content, success } = await sendTemplateMail(req.body.email);
 
-  return res.status(400).json({
-    success,
-    message,
-    content,
-  });
+  const email = "surajchan68@gmail.com";
+  await verifyAndSaveEmailContact(email);
+  // const { message, content, success } = await sendNormalMail(req.body.email);
+  // const { message, content, success } = await sendTemplateMail(req.body.email);
+
+  // return res.status(400).json({
+  //   success,
+  //   message,
+  //   content,
+  // });
 });
 
 app.get("/api/v1/template", async (req, res, next) => {
@@ -65,9 +64,7 @@ app.post("/api/v1/template", async (req, res, next) => {
 });
 
 app.get("/api/v1/template/:templateId", async (req, res, next) => {
-  const { message, success, template } = await getSendGridTemplateById(
-    req.params.templateId
-  );
+  const { message, success, template } = await getSendGridTemplateById(req.params.templateId);
 
   if (!success) {
     return res.json({
@@ -81,10 +78,9 @@ app.get("/api/v1/template/:templateId", async (req, res, next) => {
     data: template,
   });
 });
+
 app.delete("/api/v1/template/:templateId", async (req, res, next) => {
-  const { message, success, template } = await deleteSendGridTemplateById(
-    req.params.templateId
-  );
+  const { message, success, template } = await deleteSendGridTemplateById(req.params.templateId);
 
   if (!success) {
     return res.json({

@@ -5,17 +5,12 @@ const sendGridConfig = () => {
   const SENDGRID_SENDER_EMAIL = process.env.SENDGRID_SENDER_EMAIL || null;
 
   if (!SENDGRID_API_KEY) throw new Error("SENDGRID_API_KEY is required !!");
-  if (!SENDGRID_SENDER_EMAIL)
-    throw new Error("SENDGRID_SENDER_EMAIL is required !!");
+  if (!SENDGRID_SENDER_EMAIL) throw new Error("SENDGRID_SENDER_EMAIL is required !!");
 
   return { SENDGRID_API_KEY, SENDGRID_SENDER_EMAIL };
 };
 
-const getPersonalizations = (
-  RECIPIENT_EMAILS,
-  SENDGRID_SENDER_EMAIL,
-  templateData = null
-) => {
+const getPersonalizations = (RECIPIENT_EMAILS, SENDGRID_SENDER_EMAIL, templateData = null) => {
   let personalizations = [
     {
       to: [
@@ -60,10 +55,7 @@ const sendNormalMail = async (mailData) => {
     sgMail.setApiKey(SENDGRID_API_KEY);
 
     const RECIPIENT_EMAILS = [...new Set([mailData].flat())];
-    const personalizations = getPersonalizations(
-      RECIPIENT_EMAILS,
-      SENDGRID_SENDER_EMAIL
-    );
+    const personalizations = getPersonalizations(RECIPIENT_EMAILS, SENDGRID_SENDER_EMAIL);
 
     const mail = {
       from: `sender@${process.env.SENDGRID_SENDER_EMAIL}`,
@@ -108,11 +100,7 @@ const sendTemplateMail = async (mailData, templateId = null) => {
       templateId: "d-741bf704Sff4986be5daa66c81be2d",
     };
 
-    const personalizations = getPersonalizations(
-      RECIPIENT_EMAILS,
-      SENDGRID_SENDER_EMAIL,
-      templateData
-    );
+    const personalizations = getPersonalizations(RECIPIENT_EMAILS, SENDGRID_SENDER_EMAIL, templateData);
 
     const mail = {
       from: `sender@${process.env.SENDGRID_SENDER_EMAIL}`,
