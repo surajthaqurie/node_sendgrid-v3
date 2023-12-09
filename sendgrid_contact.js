@@ -41,14 +41,11 @@ const postContact = async (name) => {
     };
 
     const [Response] = await client.request(request);
-    console.log("🚀 ~ file: sendgrid_contact.js:44 ~ postContact ~ Response:", Response);
-
     return {
       success: true,
       data: Response.body,
     };
   } catch (err) {
-    console.log("🚀 ~ file: sendgrid_contact.js:50 ~ postContact ~ err:", err);
     return {
       success: false,
       message: err.message,
@@ -125,7 +122,6 @@ const searchEmailInContact = async (id, email) => {
       success: true,
     };
   } catch (err) {
-    console.log("🚀 ~ file: sendgrid_contact.js:134 ~ searchEmailInContact ~ err:", err);
     return {
       success: false,
       message: err.message,
@@ -167,99 +163,43 @@ const verifyAndSaveEmailContact = async (email) => {
   // GET All contact lists
   const { data: contactLists } = await getAllContact();
 
-  // Find the GLOBAL contact list
-  const allContact = contactLists.find((contact) => contact.name.toLowerCase() === allContactName.toLowerCase());
-  if (allContact) {
-    // Search that email on the GLOBAL contact lists
-    const { data: emailExitsGlobalContact } = await searchEmailInContact(allContact.id, email);
-    // If email exits on GLOBAL contact
-    if (emailExitsGlobalContact) {
-      // Find the app contact list
-      const appContact = contactLists.find((contact) => contact.name.toLowerCase() === process.env.APP_NAME.toLowerCase());
-      // If app contact list is available
-      if (appContact) {
-        // Find the email on APP contact list already exits or not
-        const emailExitsAppContact = await searchEmailInContact(appContact.id, email);
-        // if not save that email on APP contact list and send mail
-        if (!emailExitsAppContact.data) {
-          const data = await saveEmailToContact(appContact.id, email);
-          if (!data) throw new Error("Unable to save email on contact");
-
-          // Send mail
-          return res.json({ success: true, message: "email save and mail sent to app contact", data });
-        } else {
-          // If already exit send mail
-          return res.json({ success: true, message: "email already save and mail sent to app contact" });
-        }
-      } else {
-        // create and save that email and send mail
-        const { data: appContactCreate } = await postContact(process.env.APP_NAME);
-        if (!appContactCreate) throw new Error("Some thing went wrong, unable to send mail");
-
-        const appContactEmailSave = await saveEmailToContact(appContactCreate.id, email);
-        if (!appContactEmailSave) throw new Error("Some thing went wrong, unable to send mail");
-
-        // send mail
-        return { success: true, message: "Mail send successfully" };
-      }
-    } else {
-      // Validate email address
-      // const isValidEmail = await validateEmail(email);
-      // if (!isValidEmail) throw new Error("email is not validate");
-
-      // save on the global and app contact list ans send mail
-      const globalContactEmailSave = await saveEmailToContact(allContact.id, email);
-      if (!globalContactEmailSave) throw new Error("Some thing went wrong, unable to send mail");
-      const appContact = contactLists.find((contact) => contact.name.toLowerCase() === process.env.APP_NAME.toLowerCase());
-      // If app contact list is available
-      if (appContact) {
-        // Find the email on APP contact list already exits or not
-        const emailExitsAppContact = await searchEmailInContact(appContact.id, email);
-        // if not save that email on APP contact list and send mail
-        if (!emailExitsAppContact.data) {
-          const data = await saveEmailToContact(appContact.id, email);
-          if (!data) throw new Error("Unable to save email on contact");
-
-          // Send mail
-          return res.json({ success: true, message: "email save and mail sent to app contact", data });
-        } else {
-          // If already exit send mail
-          return res.json({ success: true, message: "email already save and mail sent to app contact" });
-        }
-      } else {
-        // create and save that email and send mail
-        const { data: appContactCreate } = await postContact(process.env.APP_NAME);
-        if (!appContactCreate) throw new Error("Some thing went wrong, unable to send mail");
-
-        const appContactEmailSave = await saveEmailToContact(appContactCreate.id, email);
-        if (!appContactEmailSave) throw new Error("Some thing went wrong, unable to send mail");
-
-        // send mail
-        return { success: true, message: "Mail send successfully" };
-      }
-    }
-  } else {
-    // const isValidEmail = await validateEmail(email);
-    // if (!isValidEmail) throw new Error("email is not validate");
-
-    // create Global contact list and APP contact list
+  let allContactList = contactLists.find((contact) => contact.name.toLowerCase() === allContactName.toLowerCase());
+  if (!allContactList) {
+    // create all contact list
     const { data: allContactCreate } = await postContact(allContactName);
     if (!allContactCreate) throw new Error("Some thing went wrong, unable to send mail");
+    allContactList = allContactCreate;
+  }
 
+  let appContactList = contactLists.find((contact) => contact.name.toLowerCase() === process.env.APP_NAME.toLowerCase());
+  if (!appContactList) {
+    // create App contact list
     const { data: appContactCreate } = await postContact(process.env.APP_NAME);
     if (!appContactCreate) throw new Error("Some thing went wrong, unable to send mail");
 
-    // save on the global and app contact list ans send mail
-    const globalContactEmailSave = await saveEmailToContact(allContactCreate.id, email);
-    if (!globalContactEmailSave) throw new Error("Some thing went wrong, unable to send mail");
-
-    const appContactEmailSave = await saveEmailToContact(appContactCreate.id, email);
-    if (!appContactEmailSave) throw new Error("Some thing went wrong, unable to send mail");
-
-    // send mail
-    return { success: true, message: "Mail send successfully" };
+    appContactList = appContactCreate;
   }
+
+  const { data: emailExitsGlobalContact } = await searchEmailInContact(allContactList.id, email);
+  if (!emailExitsGlobalContact) {
+    // Validate email address
+    // const isValidEmail = await validateEmail(email);
+    // if (!isValidEmail) throw new Error("Email address is invalid, unable to send mail");
+
+    const globalContactEmailSave = await saveEmailToContact(allContactList.id, email);
+    if (!globalContactEmailSave) throw new Error("Some thing went wrong, unable to send mail");
+  }
+
+  const { data: emailExitsAppContact } = await searchEmailInContact(appContactList.id, email);
+  if (!emailExitsAppContact) {
+    const { data: saveEmail } = await saveEmailToContact(allContactList.id, email);
+    if (!saveEmail) throw new Error("Unable to save email on contact");
+  }
+
+  // Send mail
+  return { success: true, message: "email save and mail sent to app contact" };
 };
+
 module.exports = {
   getAllContact,
   postContact,

@@ -20,10 +20,14 @@ app.post("/api/v1/mail-send", async (req, res) => {
   }
 
   const email = "surajchan68@gmail.com";
-  await verifyAndSaveEmailContact(email);
+  const data = await verifyAndSaveEmailContact(email);
   // const { message, content, success } = await sendNormalMail(req.body.email);
   // const { message, content, success } = await sendTemplateMail(req.body.email);
 
+  return res.json({
+    data,
+    success: true,
+  });
   // return res.status(400).json({
   //   success,
   //   message,
