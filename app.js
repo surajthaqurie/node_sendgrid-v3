@@ -4,7 +4,7 @@ const app = express();
 const cors = require("cors");
 const { sendTemplateMail, sendNormalMail } = require("./sendgrid");
 const { getSendGridTemplates, postSendGridTemplate, getSendGridTemplateById, deleteSendGridTemplateById } = require("./sendgrid_template");
-const { getAllContact, searchEmailInContact, saveEmailToContact, postContact, validateEmail, verifyAndSaveEmailContact } = require("./sendgrid_contact");
+const { SendGridConfig } = require("./sendgrid_contact");
 
 const PORT = process.env.PORT || 3001;
 app.use(express.json());
@@ -20,7 +20,8 @@ app.post("/api/v1/mail-send", async (req, res) => {
   }
 
   const email = "surajchan68@gmail.com";
-  const data = await verifyAndSaveEmailContact(email);
+  const data = await new SendGridConfig().verifyAndSaveEmailContact(email);
+
   // const { message, content, success } = await sendNormalMail(req.body.email);
   // const { message, content, success } = await sendTemplateMail(req.body.email);
 
